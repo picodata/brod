@@ -1,0 +1,15 @@
+stages:
+    - build
+
+build-module:
+    stage: build
+    tags:
+        - docker
+    image: tarantool/tarantool:2.x-centos7
+    before_script:
+        - yum groupinstall -y "Development Tools"
+        - yum install -y cmake
+    script:
+        - cmake .
+        - make
+        - make install
