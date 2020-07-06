@@ -5,11 +5,9 @@ build-module:
     stage: build
     tags:
         - docker
-    image: tarantool/tarantool:2.x-centos7
-    before_script:
-        - yum groupinstall -y "Development Tools"
-        - yum install -y cmake
+    image: registry.gitlab.com/picodata/dockers/brod-builder:0.1
     script:
+        - cd /builds/picodata/brod
         - cmake .
         - make
         - make install
