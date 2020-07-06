@@ -14,6 +14,7 @@ install_manifest.txt
 *.reject
 *.so
 *~
+brod/brodrust/x86_64-unknown-linux-gnu
 .gdb_history
 VERSION
 Testing
