@@ -4,6 +4,8 @@ use std::ffi::CStr;
 use std::io::Write;
 use std::net::{TcpListener, TcpStream};
 
+use luajit::{c_int, State, lua_fn};
+
 fn handle_client(stream: &mut TcpStream) {
     let res = stream.write("Hello there, General Kenobi!\n".as_bytes());
     match res {
@@ -13,7 +15,7 @@ fn handle_client(stream: &mut TcpStream) {
 }
 
 #[no_mangle]
-pub extern "C" fn hello() {
+pub extern fn hello() {
     println!("Hello there, General Kenobi!");
 }
 
@@ -26,6 +28,23 @@ pub extern fn rustproc(fiber_id: u64) {
         }
         println!("rust fiber {}: after sleep", fiber_id);
     }
+}
+
+fn return_42(state: &mut State) -> c_int {
+    state.push(42);
+
+    1
+}
+
+#[no_mangle]
+pub extern fn lua() {
+    let mut state = State::new();
+    state.open_libs();
+    state.do_string(r#"print("Hello world!")"#);
+
+    state.push(lua_fn!(return_42));
+    state.set_global("return_42");
+    state.do_string(r#"print(return_42())"#);
 }
 
 #[no_mangle]

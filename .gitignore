@@ -17,6 +17,7 @@ install_manifest.txt
 *~
 brod/brodrust/x86_64-unknown-linux-gnu
 brod/brodrust/target
+brod/brodrust/debug
 .gdb_history
 VERSION
 Testing

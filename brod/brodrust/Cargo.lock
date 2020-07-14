@@ -3,3 +3,20 @@
 [[package]]
 name = "brodrust"
 version = "0.1.0"
+dependencies = [
+ "luajit",
+]
+
+[[package]]
+name = "libc"
+version = "0.2.72"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9f8082297d534141b30c8d39e9b1773713ab50fdbe4ff30f750d063b3bfd701"
+
+[[package]]
+name = "luajit"
+version = "0.1.1"
+source = "git+https://github.com/picodata/luajit-rs#339927cc03e6bfd4a84c7f9820d71c32c6bf592e"
+dependencies = [
+ "libc",
+]
