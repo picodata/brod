@@ -8,6 +8,10 @@ edition = "2018"
 
 [dependencies]
 luajit = { git = "https://github.com/picodata/luajit-rs" }
+libc = "0.2.32"
+byteorder = "1.3.4"
+error-chain = "0.10"
+openssl = "0.10.30"
 
 [lib]
 crate-type = ["dylib"]
