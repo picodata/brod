@@ -1,50 +1,43 @@
+pub mod kafka_error;
+mod protocol;
+
+use protocol::codecs::{FromByte, ToByte};
+use protocol::header::{RequestHeader};
+use protocol::api_versions::{ApiVersionsResponse};
+
+
+#[macro_use]
+extern crate error_chain;
+
 include!("bindings/module.rs");
+
+use std::io::{Write};
 use std::os::raw::c_char;
 use std::ffi::CStr;
-use std::io::Write;
 use std::net::{TcpListener, TcpStream};
 
-use luajit::{c_int, State, lua_fn};
+fn handle_client(mut stream: &mut TcpStream) {
+    let mut size: i32 = 0;
+    size.decode(&mut stream).unwrap();
+    println!("Size {}", size);
 
-fn handle_client(stream: &mut TcpStream) {
-    let res = stream.write("Hello there, General Kenobi!\n".as_bytes());
-    match res {
-        Ok(res) => res,
-        Err(e) => panic!(e),
-    };
-}
+    let hr: RequestHeader = RequestHeader::new(&mut stream);
+    println!("hr {:?}", hr);
 
-#[no_mangle]
-pub extern fn hello() {
-    println!("Hello there, General Kenobi!");
-}
+    if hr.api_key == 18 {
+        let api_keys_response = ApiVersionsResponse::new(hr.correlation_id, 1, 1);
 
-#[no_mangle]
-pub extern fn rustproc(fiber_id: u64) {
-    for _ in 0..5 {
-        println!("rust fiber {}: before sleep", fiber_id);
-        unsafe {
-            fiber_sleep(0.1);
-        }
-        println!("rust fiber {}: after sleep", fiber_id);
+        let mut temp_buf = vec![];
+        api_keys_response.encode(& mut temp_buf).unwrap();
+
+        let size: i32 = temp_buf.len() as i32;
+
+        println!("Temp buf {:?}", temp_buf);
+        println!("Size of resp {}", size);
+        size.encode(stream).unwrap();
+
+        stream.write(&temp_buf[..]).unwrap();
     }
-}
-
-fn return_42(state: &mut State) -> c_int {
-    state.push(42);
-
-    1
-}
-
-#[no_mangle]
-pub extern fn lua() {
-    let mut state = State::new();
-    state.open_libs();
-    state.do_string(r#"print("Hello world!")"#);
-
-    state.push(lua_fn!(return_42));
-    state.set_global("return_42");
-    state.do_string(r#"print(return_42())"#);
 }
 
 #[no_mangle]
