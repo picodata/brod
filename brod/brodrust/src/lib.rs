@@ -2,6 +2,7 @@ pub mod kafka_error;
 mod protocol;
 
 use protocol::codecs::{FromByte};
+use protocol::header::{RequestHeader};
 
 #[macro_use]
 extern crate error_chain;
@@ -13,15 +14,12 @@ use std::ffi::CStr;
 use std::net::{TcpListener, TcpStream};
 
 fn handle_client(mut stream: &mut TcpStream) {
-
     let mut size: i32 = 0;
     size.decode(&mut stream).unwrap();
-
-    let mut api_key: i16 = 0;
-    api_key.decode(&mut stream).unwrap();
-
     println!("Size {}", size);
-    println!("API key {}", api_key);
+
+    let hr: RequestHeader = RequestHeader::new(&mut stream);
+    println!("hr {:?}", hr);
 }
 
 #[no_mangle]
