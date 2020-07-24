@@ -75,3 +75,23 @@ fn to_and_from_byte() {
     got.decode(&mut Cursor::new(&buf[..])).unwrap();
     assert_eq!(orig, got);
 }
+
+#[derive(Default, Debug, Clone)]
+pub struct ResponseHeader {
+    pub correlation: i32,
+}
+
+impl FromByte for ResponseHeader {
+    type R = ResponseHeader;
+
+    #[allow(unused_must_use)]
+    fn decode<T: Read>(&mut self, buffer: &mut T) -> Result<()> {
+        self.correlation.decode(buffer)
+    }
+}
+
+impl ToByte for ResponseHeader {
+    fn encode<W: Write>(&self, buffer: &mut W) -> Result<()> {
+        self.correlation.encode(buffer)
+    }
+}
