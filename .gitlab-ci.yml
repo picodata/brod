@@ -7,7 +7,4 @@ build-module:
         - docker
     image: registry.gitlab.com/picodata/dockers/brod-builder:0.1
     script:
-        - cd /builds/picodata/brod
-        - cmake .
-        - make
-        - make install
+        - tarantoolctl rocks make

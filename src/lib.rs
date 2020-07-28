@@ -1,10 +1,11 @@
+use luajit::ffi::lua_State;
+use luajit::{State, c_int};
+
 pub mod kafka_error;
 mod protocol;
-
 use protocol::codecs::{FromByte, ToByte};
 use protocol::header::{RequestHeader};
 use protocol::api_versions::{ApiVersionsResponse};
-
 
 #[macro_use]
 extern crate error_chain;
@@ -12,8 +13,6 @@ extern crate error_chain;
 include!("bindings/module.rs");
 
 use std::io::{Write};
-use std::os::raw::c_char;
-use std::ffi::CStr;
 use std::net::{TcpListener, TcpStream};
 
 fn handle_client(mut stream: &mut TcpStream) {
@@ -41,12 +40,12 @@ fn handle_client(mut stream: &mut TcpStream) {
 }
 
 #[no_mangle]
-pub extern fn brod_listen(c_ptr: *const c_char) {
-    let c_str = unsafe { CStr::from_ptr(c_ptr) };
-    let addr = c_str.to_str();
+pub extern fn brod_listen(l: *mut lua_State) -> c_int {
+    let mut state = State::from_ptr(l);
+    let addr = state.to_str(1);
     let addr = match addr {
-        Ok(addr) => addr,
-        Err(_) => panic!(),
+        Some(addr) => addr,
+        None => panic!("No args received"),
     };
 
     let listener = TcpListener::bind(addr);
@@ -64,4 +63,24 @@ pub extern fn brod_listen(c_ptr: *const c_char) {
 
         handle_client(&mut stream);
     }
+
+    0
+}
+
+#[no_mangle]
+pub extern fn box_info(l: *mut lua_State) -> c_int {
+    let mut state = State::from_ptr(l);
+    state.do_string(r#"box.cfg{}"#);
+    state.do_string(r#"print(box.info())"#);
+    0
+}
+
+#[no_mangle]
+pub fn luaopen_brod(l: *mut lua_State) -> c_int
+{
+    let mut state = State::from_ptr(l);
+
+    state.register("listen", brod_listen);
+    state.register("box_info", box_info);
+    return 1;
 }
